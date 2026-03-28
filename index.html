@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#3a5a3a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Your personal essential oil blender">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>DANK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink: #1a1a18;
+  --paper: #f5f0e8;
+  --moss: #3a5a3a;
+  --amber: #c8882a;
+  --sage: #7a9e7a;
+  --cream: #ede8dc;
+  --muted: #8a8478;
+  --tag-bg: #2e3a2e;
+  --tag-txt: #a8c8a8;
+  --danger: #a04040;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 2px 8px rgba(26,26,24,0.08);
+  --shadow-lg: 0 4px 20px rgba(26,26,24,0.12);
+}
+
+html { background: var(--paper); }
+body {
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--sage); border-radius: 3px; }
+
+/* ── Layout ── */
+.app { max-width: 480px; margin: 0 auto; padding: 24px 20px 100px; }
+
+/* ── Header ── */
+.header { text-align: center; margin-bottom: 32px; position: relative; }
+.wordmark {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 64px;
+  letter-spacing: 6px;
+  color: var(--moss);
+  line-height: 1;
+}
+.tagline {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.settings-btn {
+  position: absolute;
+  top: 8px;
+  right: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  transition: color 0.2s, background 0.2s;
+}
+.settings-btn:hover { color: var(--moss); background: var(--cream); }
+.settings-btn svg { width: 22px; height: 22px; display: block; }
+
+/* ── Navigation Tabs ── */
+.nav-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--cream);
+  border-radius: var(--radius);
+  padding: 4px;
+  margin-bottom: 28px;
+}
+.nav-tab {
+  flex: 1;
+  padding: 10px 8px;
+  border: none;
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.nav-tab.active {
+  background: white;
+  color: var(--moss);
+  box-shadow: var(--shadow);
+}
+.nav-tab:not(.active):hover { color: var(--ink); }
+
+/* ── Sections ── */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── Section Titles ── */
+.section-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+/* ── Oil Input ── */
+.oil-input-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+.oil-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--cream);
+  border-radius: var(--radius);
+  background: var(--cream);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.oil-input::placeholder { color: var(--muted); }
+.oil-input:focus { border-color: var(--sage); }
+
+/* ── Autocomplete ── */
+.autocomplete {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--cream);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+  display: none;
+}
+.autocomplete.open { display: block; }
+.autocomplete-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 15px;
+  color: var(--ink);
+  transition: background 0.15s;
+}
+.autocomplete-item:hover,
+.autocomplete-item.highlighted { background: var(--cream); }
+.autocomplete-item .match { font-weight: 700; color: var(--moss); }
+
+/* ── Oil Tags ── */
+.oil-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  min-height: 24px;
+}
+.oil-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--tag-bg);
+  color: var(--tag-txt);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: default;
+  animation: tagIn 0.25s ease;
+  transition: opacity 0.2s;
+}
+.oil-tag:hover { opacity: 0.85; }
+.oil-tag .remove {
+  cursor: pointer;
+  opacity: 0.6;
+  font-size: 16px;
+  line-height: 1;
+  transition: opacity 0.15s;
+}
+.oil-tag .remove:hover { opacity: 1; }
+@keyframes tagIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.oil-count {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+/* ── Intention Grid ── */
+.intention-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 28px;
+}
+@media (max-width: 400px) {
+  .intention-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.intention-btn {
+  padding: 12px 8px;
+  border: 2px solid var(--cream);
+  background: var(--cream);
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1.3;
+}
+.intention-btn:hover { border-color: var(--sage); color: var(--ink); }
+.intention-btn.active {
+  background: var(--moss);
+  border-color: var(--moss);
+  color: white;
+}
+
+/* ── Action Buttons ── */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.btn {
+  flex: 1;
+  padding: 14px 16px;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--moss);
+  color: white;
+}
+.btn-primary:not(:disabled):hover { background: #2d4a2d; }
+.btn-secondary {
+  background: var(--cream);
+  color: var(--ink);
+}
+.btn-secondary:not(:disabled):hover { background: #e2ddd1; }
+.btn-amber {
+  background: var(--amber);
+  color: white;
+}
+.btn-amber:not(:disabled):hover { background: #b07a24; }
+.btn-small {
+  padding: 8px 14px;
+  font-size: 13px;
+  flex: none;
+}
+.btn-danger {
+  background: none;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+.btn-danger:not(:disabled):hover { background: var(--danger); color: white; }
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Result Panel ── */
+.result-panel {
+  background: var(--cream);
+  border-radius: var(--radius);
+  padding: 24px;
+  color: var(--ink);
+  line-height: 1.7;
+  display: none;
+  animation: fadeUp 0.35s ease;
+}
+.result-panel.visible { display: block; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.result-panel h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 2px;
+  color: var(--moss);
+  margin-top: 20px;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+.result-panel h3:first-child { margin-top: 0; }
+.result-panel p { margin-bottom: 10px; font-size: 14px; }
+.result-panel strong { color: var(--ink); }
+.result-panel .drops { color: var(--amber); font-weight: 700; }
+.result-panel .divider {
+  border: none;
+  border-top: 1px solid rgba(138,132,120,0.2);
+  margin: 20px 0;
+}
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.result-header-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+
+/* ── Loading Spinner ── */
+.loading {
+  display: none;
+  text-align: center;
+  padding: 40px 20px;
+}
+.loading.visible { display: block; }
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--cream);
+  border-top-color: var(--moss);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text {
+  font-size: 14px;
+  color: var(--muted);
+  font-style: italic;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+/* ── Saved Blends (Phase 2) ── */
+.saved-blend-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.3s ease;
+}
+.saved-blend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+.saved-blend-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+.saved-blend-intention {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--cream);
+  color: var(--moss);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.saved-blend-oils {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0;
+}
+.saved-blend-oils .mini-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: var(--tag-bg);
+  color: var(--tag-txt);
+  border-radius: 10px;
+}
+.saved-blend-content {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+.saved-blend-content.collapsed {
+  max-height: 120px;
+  overflow: hidden;
+  position: relative;
+}
+.saved-blend-content.collapsed::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(transparent, white);
+}
+.saved-blend-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--cream);
+}
+.saved-blend-notes {
+  margin-top: 12px;
+}
+.saved-blend-notes textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--cream);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--cream);
+  resize: vertical;
+  min-height: 60px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.saved-blend-notes textarea::placeholder { color: var(--muted); }
+.saved-blend-notes textarea:focus { border-color: var(--sage); }
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--muted);
+}
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+.empty-state-text {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── Star/Save Button ── */
+.save-recipe-btn {
+  background: none;
+  border: 1px solid var(--sage);
+  color: var(--moss);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.save-recipe-btn:hover { background: var(--moss); color: white; border-color: var(--moss); }
+.save-recipe-btn.saved { background: var(--moss); color: white; border-color: var(--moss); }
+
+/* ── History (Phase 3) ── */
+.history-entry {
+  background: white;
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+.history-entry:hover { box-shadow: var(--shadow-lg); }
+.history-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.history-entry-type {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.history-entry-type.blend { background: var(--moss); color: white; }
+.history-entry-type.buy { background: var(--amber); color: white; }
+.history-entry-date {
+  font-size: 12px;
+  color: var(--muted);
+}
+.history-entry-preview {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.history-detail {
+  display: none;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--cream);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+.history-detail.open { display: block; }
+
+/* ── Oil Detail Modal (Phase 3) ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26,26,24,0.5);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+.modal-overlay.open { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: white;
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.3s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.modal-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 2px;
+  color: var(--moss);
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.modal-close:hover { color: var(--ink); }
+.modal-section {
+  margin-bottom: 16px;
+}
+.modal-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.modal-section p {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.modal-section ul {
+  list-style: none;
+  padding: 0;
+}
+.modal-section li {
+  font-size: 14px;
+  color: var(--ink);
+  padding: 4px 0;
+  padding-left: 16px;
+  position: relative;
+}
+.modal-section li::before {
+  content: '~';
+  position: absolute;
+  left: 0;
+  color: var(--sage);
+}
+
+/* ── Carrier Oil Guide (Phase 3) ── */
+.carrier-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+}
+.carrier-card h4 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 1px;
+  color: var(--moss);
+  margin-bottom: 4px;
+}
+.carrier-card p {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.carrier-card .carrier-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* ── Dilution Calculator (Phase 3) ── */
+.calc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.calc-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.calc-field input,
+.calc-field select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--cream);
+  border-radius: var(--radius-sm);
+  background: var(--cream);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.calc-field input:focus,
+.calc-field select:focus { border-color: var(--sage); }
+.calc-result {
+  background: var(--moss);
+  color: white;
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+}
+.calc-result-drops {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.calc-result-label {
+  font-size: 13px;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+.calc-result-detail {
+  font-size: 12px;
+  opacity: 0.6;
+  margin-top: 8px;
+}
+
+/* ── Settings Panel ── */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26,26,24,0.5);
+  z-index: 300;
+  display: none;
+  animation: fadeIn 0.2s ease;
+}
+.settings-overlay.open { display: block; }
+.settings-panel {
+  position: fixed;
+  top: 0;
+  right: -320px;
+  width: 320px;
+  max-width: 85vw;
+  height: 100%;
+  background: white;
+  z-index: 301;
+  padding: 28px 24px;
+  overflow-y: auto;
+  transition: right 0.3s ease;
+  box-shadow: -4px 0 20px rgba(26,26,24,0.15);
+}
+.settings-panel.open { right: 0; }
+.settings-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 2px;
+  color: var(--moss);
+  margin-bottom: 24px;
+}
+.settings-group {
+  margin-bottom: 24px;
+}
+.settings-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.settings-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--cream);
+  border-radius: var(--radius-sm);
+  background: var(--cream);
+  font-family: 'DM Sans', monospace;
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.settings-input:focus { border-color: var(--sage); }
+.settings-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+.settings-saved {
+  color: var(--moss);
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.settings-saved.visible { opacity: 1; }
+.settings-close {
+  position: absolute;
+  top: 24px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+}
+.settings-close:hover { color: var(--ink); }
+.settings-danger-zone {
+  border-top: 1px solid var(--cream);
+  padding-top: 20px;
+  margin-top: 8px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Header -->
+  <header class="header">
+    <div class="wordmark">DANK</div>
+    <div class="tagline">Your personal essential oil blender</div>
+    <button class="settings-btn" onclick="toggleSettings()" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-tab="blend">Blend</button>
+    <button class="nav-tab" data-tab="saved">My Blends</button>
+    <button class="nav-tab" data-tab="history">History</button>
+    <button class="nav-tab" data-tab="tools">Tools</button>
+  </nav>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- TAB: Blend -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section active" id="tab-blend">
+    <div class="section-title">Your Oils</div>
+    <div class="oil-input-wrap">
+      <input type="text" class="oil-input" id="oilInput" placeholder="Type an oil name..." autocomplete="off" autocapitalize="words">
+      <div class="autocomplete" id="autocomplete"></div>
+    </div>
+    <div class="oil-tags" id="oilTags"></div>
+    <div class="oil-count" id="oilCount"></div>
+
+    <div class="section-title">Intention <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:12px;color:var(--muted)">(optional)</span></div>
+    <div class="intention-grid" id="intentionGrid">
+      <button class="intention-btn" data-intention="sleep">Sleep &amp; Calm</button>
+      <button class="intention-btn" data-intention="energy">Energy &amp; Focus</button>
+      <button class="intention-btn" data-intention="immunity">Immunity</button>
+      <button class="intention-btn" data-intention="mood">Mood Lift</button>
+      <button class="intention-btn" data-intention="pain">Pain Relief</button>
+      <button class="intention-btn" data-intention="skin">Skin &amp; Beauty</button>
+      <button class="intention-btn" data-intention="breathing">Breathing</button>
+      <button class="intention-btn" data-intention="digestion">Digestion</button>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn btn-primary btn-icon" id="btnBlend" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2v6m0 0l-3-3m3 3l3-3M5 12h14M5 12a7 7 0 007 7m-7-7a7 7 0 017-7m7 7a7 7 0 01-7 7m7-7a7 7 0 00-7-7"/></svg>
+        Make Blends
+      </button>
+      <button class="btn btn-amber btn-icon" id="btnBuy" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
+        What to Buy
+      </button>
+    </div>
+
+    <div class="loading" id="loadingPanel">
+      <div class="loading-spinner"></div>
+      <div class="loading-text" id="loadingText"></div>
+    </div>
+
+    <div class="result-panel" id="resultPanel">
+      <div class="result-header">
+        <div class="result-header-title" id="resultTitle">Blend Recipes</div>
+        <button class="save-recipe-btn" id="btnSaveResult" onclick="saveCurrentResult()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          Save
+        </button>
+      </div>
+      <div id="resultContent"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- TAB: My Blends (Phase 2) -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section" id="tab-saved">
+    <div class="section-title">Saved Blends</div>
+    <div id="savedBlendsList"></div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- TAB: History (Phase 3) -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section" id="tab-history">
+    <div class="section-title">Generation History</div>
+    <div id="historyList"></div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- TAB: Tools (Phase 3) -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section" id="tab-tools">
+    <!-- Oil Detail reference -->
+    <div class="section-title" style="margin-bottom:8px">Oil Reference</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Tap any oil tag in your collection to see its properties.</p>
+
+    <!-- Carrier Oil Guide -->
+    <div class="section-title">Carrier Oil Guide</div>
+    <div id="carrierGuide"></div>
+
+    <!-- Dilution Calculator -->
+    <div class="section-title" style="margin-top:28px">Dilution Calculator</div>
+    <div class="calc-grid">
+      <div class="calc-field">
+        <label>Bottle Size</label>
+        <select id="calcVolume">
+          <option value="5">5 ml</option>
+          <option value="10" selected>10 ml</option>
+          <option value="15">15 ml</option>
+          <option value="30">30 ml</option>
+          <option value="50">50 ml</option>
+          <option value="100">100 ml</option>
+        </select>
+      </div>
+      <div class="calc-field">
+        <label>Dilution %</label>
+        <select id="calcPercent">
+          <option value="1">1% — Sensitive skin</option>
+          <option value="2" selected>2% — Standard</option>
+          <option value="3">3% — Strong</option>
+          <option value="5">5% — Short-term</option>
+          <option value="10">10% — Acute</option>
+        </select>
+      </div>
+    </div>
+    <div class="calc-result" id="calcResult">
+      <div class="calc-result-drops" id="calcDrops">4</div>
+      <div class="calc-result-label">drops of essential oil</div>
+      <div class="calc-result-detail" id="calcDetail">in 10 ml carrier oil at 2% dilution</div>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- Settings Side Panel -->
+<!-- ══════════════════════════════════════════ -->
+<div class="settings-overlay" id="settingsOverlay" onclick="toggleSettings()"></div>
+<div class="settings-panel" id="settingsPanel">
+  <button class="settings-close" onclick="toggleSettings()">&times;</button>
+  <div class="settings-title">Settings</div>
+
+  <div class="settings-group">
+    <div class="settings-label">Anthropic API Key</div>
+    <input type="password" class="settings-input" id="apiKeyInput" placeholder="sk-ant-..." autocomplete="off">
+    <div class="settings-hint">Your key is stored locally on this device and never sent anywhere except the Anthropic API.</div>
+    <div class="settings-saved" id="apiKeySaved">Saved</div>
+  </div>
+
+  <div class="settings-group settings-danger-zone">
+    <div class="settings-label">Data</div>
+    <button class="btn btn-small btn-secondary" onclick="exportData()" style="margin-bottom:8px;width:100%">Export All Data</button>
+    <button class="btn btn-small btn-danger" onclick="clearAllData()" style="width:100%">Clear All Data</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- Oil Detail Modal (Phase 3) -->
+<!-- ══════════════════════════════════════════ -->
+<div class="modal-overlay" id="oilModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="oilModalName"></div>
+      <button class="modal-close" onclick="closeOilModal()">&times;</button>
+    </div>
+    <div id="oilModalBody"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════
+
+const BUILT_IN_OILS = [
+  'Lavender','Peppermint','Eucalyptus','Tea Tree','Lemon','Orange','Frankincense',
+  'Rosemary','Bergamot','Clary Sage','Cedarwood','Ylang Ylang','Geranium','Clove',
+  'Cinnamon','Ginger','Vetiver','Sandalwood','Patchouli','Juniper Berry','Lemongrass',
+  'Marjoram','Thyme','Basil','Black Pepper','Cardamom','Chamomile','Cypress','Fennel',
+  'Helichrysum','Jasmine','Neroli','Oregano','Rose','Spearmint','Copaiba','Melissa',
+  'Myrrh','Palmarosa','Petitgrain','Lime','Grapefruit','Nutmeg','Fir Needle','Spruce',
+  'Pine','Carrot Seed','Ravintsara','Immortelle','Turmeric'
+];
+
+const OIL_DATA = {
+  'Lavender':      { family: 'Floral', note: 'Middle', safety: 'Generally safe for all ages. Avoid in first trimester.', uses: ['Diffuser','Topical','Bath'], benefits: ['Calming','Sleep support','Skin soothing','Minor burns & bites'], blends: ['Cedarwood','Bergamot','Frankincense','Orange','Chamomile'] },
+  'Peppermint':    { family: 'Mint', note: 'Top', safety: 'Avoid on children under 6. Not for use near face of infants. Can irritate sensitive skin.', uses: ['Diffuser','Topical (diluted)','Inhaler'], benefits: ['Energy boost','Headache relief','Digestive support','Cooling sensation'], blends: ['Eucalyptus','Rosemary','Lavender','Lemon','Tea Tree'] },
+  'Eucalyptus':    { family: 'Camphoraceous', note: 'Top', safety: 'Avoid on children under 10. Do not ingest. Keep away from face of young children.', uses: ['Diffuser','Steam inhalation','Chest rub'], benefits: ['Respiratory support','Decongestant','Antimicrobial','Energizing'], blends: ['Peppermint','Tea Tree','Lavender','Lemon','Pine'] },
+  'Tea Tree':      { family: 'Camphoraceous', note: 'Middle', safety: 'For external use only. May irritate sensitive skin. Toxic to cats and dogs.', uses: ['Topical','Diffuser','Cleaning'], benefits: ['Antimicrobial','Skin blemishes','Immune support','Natural cleanser'], blends: ['Lavender','Eucalyptus','Lemon','Rosemary','Geranium'] },
+  'Lemon':         { family: 'Citrus', note: 'Top', safety: 'Phototoxic — avoid sun for 12-18 hours after topical use. Can degrade plastics.', uses: ['Diffuser','Cleaning','Topical (diluted)'], benefits: ['Uplifting','Mental clarity','Cleansing','Immune support'], blends: ['Lavender','Peppermint','Eucalyptus','Rosemary','Bergamot'] },
+  'Orange':        { family: 'Citrus', note: 'Top', safety: 'Mild phototoxicity. Generally safe. Short shelf life — refrigerate.', uses: ['Diffuser','Topical (diluted)','Cleaning'], benefits: ['Mood lift','Calming','Digestive support','Air freshening'], blends: ['Lavender','Cinnamon','Clove','Frankincense','Ylang Ylang'] },
+  'Frankincense':  { family: 'Resin', note: 'Base', safety: 'Generally safe. Avoid in first trimester.', uses: ['Diffuser','Topical','Meditation'], benefits: ['Grounding','Skin rejuvenation','Immune support','Meditation aid'], blends: ['Lavender','Orange','Myrrh','Sandalwood','Cedarwood'] },
+  'Rosemary':      { family: 'Herbaceous', note: 'Middle', safety: 'Avoid with epilepsy or high blood pressure. Not for children under 6.', uses: ['Diffuser','Topical (diluted)','Hair care'], benefits: ['Mental focus','Hair growth','Circulation','Pain relief'], blends: ['Peppermint','Lavender','Lemon','Cedarwood','Basil'] },
+  'Bergamot':      { family: 'Citrus', note: 'Top', safety: 'Highly phototoxic — avoid sun for 18+ hours. Use bergaptene-free for topical.', uses: ['Diffuser','Topical (diluted)','Bath'], benefits: ['Stress relief','Mood balancing','Skin care','Confidence boost'], blends: ['Lavender','Ylang Ylang','Geranium','Frankincense','Cedarwood'] },
+  'Clary Sage':    { family: 'Herbaceous', note: 'Middle', safety: 'Avoid during pregnancy. Do not use with alcohol — can intensify effects.', uses: ['Diffuser','Topical','Bath'], benefits: ['Hormone balance','Stress relief','Euphoric','Cramp relief'], blends: ['Lavender','Bergamot','Geranium','Cedarwood','Frankincense'] },
+  'Cedarwood':     { family: 'Woody', note: 'Base', safety: 'Avoid during pregnancy. Generally safe for most adults.', uses: ['Diffuser','Topical','Hair care'], benefits: ['Grounding','Sleep support','Hair health','Insect repellent'], blends: ['Lavender','Bergamot','Rosemary','Frankincense','Ylang Ylang'] },
+  'Ylang Ylang':   { family: 'Floral', note: 'Middle-Base', safety: 'Can cause headache in large amounts. Use sparingly — very potent.', uses: ['Diffuser','Topical (diluted)','Perfumery'], benefits: ['Romance','Stress relief','Blood pressure support','Hair conditioning'], blends: ['Bergamot','Grapefruit','Jasmine','Vetiver','Orange'] },
+  'Geranium':      { family: 'Floral', note: 'Middle', safety: 'Generally safe. May affect hormone-sensitive conditions.', uses: ['Diffuser','Topical','Skin care'], benefits: ['Skin balancing','Emotional balance','Insect repellent','Hormone support'], blends: ['Lavender','Rose','Bergamot','Clary Sage','Cedarwood'] },
+  'Clove':         { family: 'Spice', note: 'Middle-Base', safety: 'Potent skin irritant — always dilute heavily (0.5% max). Avoid on children.', uses: ['Diffuser (sparingly)','Topical (very diluted)','Dental'], benefits: ['Dental pain','Antimicrobial','Warming','Immune boost'], blends: ['Orange','Cinnamon','Ginger','Nutmeg','Lemon'] },
+  'Cinnamon':      { family: 'Spice', note: 'Base', safety: 'Strong skin irritant and sensitizer. Max 0.1% topical dilution. Use cinnamon leaf, not bark, for topical.', uses: ['Diffuser (sparingly)','Cleaning'], benefits: ['Warming','Antimicrobial','Blood sugar support','Inviting aroma'], blends: ['Orange','Clove','Ginger','Cardamom','Vanilla'] },
+  'Ginger':        { family: 'Spice', note: 'Middle', safety: 'Mild phototoxicity. May interact with blood thinners.', uses: ['Diffuser','Topical (diluted)','Compress'], benefits: ['Nausea relief','Warming','Digestive support','Joint comfort'], blends: ['Lemon','Orange','Frankincense','Cedarwood','Black Pepper'] },
+  'Vetiver':       { family: 'Woody', note: 'Base', safety: 'Generally safe. Very thick — warm the bottle for easier dispensing.', uses: ['Diffuser','Topical','Perfumery'], benefits: ['Deep grounding','ADHD focus','Sleep','Trauma recovery'], blends: ['Lavender','Ylang Ylang','Bergamot','Sandalwood','Grapefruit'] },
+  'Sandalwood':    { family: 'Woody', note: 'Base', safety: 'Generally safe. One of the safest oils. Use sustainably sourced.', uses: ['Diffuser','Topical','Meditation'], benefits: ['Meditation','Skin care','Calming','Mental clarity'], blends: ['Frankincense','Lavender','Rose','Bergamot','Myrrh'] },
+  'Patchouli':     { family: 'Earthy', note: 'Base', safety: 'Generally safe. Can act as a mild sedative in large amounts.', uses: ['Diffuser','Topical','Perfumery'], benefits: ['Grounding','Skin regeneration','Insect repellent','Stress relief'], blends: ['Bergamot','Ylang Ylang','Geranium','Frankincense','Vetiver'] },
+  'Juniper Berry':  { family: 'Woody', note: 'Middle', safety: 'Avoid with kidney issues. Avoid during pregnancy.', uses: ['Diffuser','Topical (diluted)','Bath'], benefits: ['Detoxifying','Grounding','Joint support','Purifying'], blends: ['Cypress','Cedarwood','Lavender','Bergamot','Grapefruit'] },
+  'Lemongrass':    { family: 'Citrus-Herbaceous', note: 'Top', safety: 'Can irritate sensitive skin. Max 0.7% topical. Avoid on damaged skin.', uses: ['Diffuser','Topical (diluted)','Insect repellent'], benefits: ['Insect repellent','Energizing','Muscle relief','Air purifying'], blends: ['Lavender','Geranium','Eucalyptus','Basil','Cedarwood'] },
+  'Marjoram':      { family: 'Herbaceous', note: 'Middle', safety: 'Avoid during pregnancy. Can lower blood pressure.', uses: ['Diffuser','Topical','Compress'], benefits: ['Muscle relaxation','Sleep support','Circulation','Comfort'], blends: ['Lavender','Rosemary','Chamomile','Cypress','Cedarwood'] },
+  'Thyme':         { family: 'Herbaceous', note: 'Middle', safety: 'Use thyme linalool (not thymol) for skin. Strong irritant — dilute well.', uses: ['Diffuser','Topical (diluted)','Steam'], benefits: ['Immune boost','Respiratory','Antimicrobial','Energizing'], blends: ['Rosemary','Lemon','Eucalyptus','Lavender','Bergamot'] },
+  'Basil':         { family: 'Herbaceous', note: 'Top', safety: 'Avoid during pregnancy. Can irritate skin — dilute well.', uses: ['Diffuser','Topical (diluted)','Inhaler'], benefits: ['Mental clarity','Headache relief','Muscle comfort','Stress relief'], blends: ['Rosemary','Lemon','Peppermint','Bergamot','Geranium'] },
+  'Black Pepper':  { family: 'Spice', note: 'Middle', safety: 'Generally safe. May irritate skin in high concentrations.', uses: ['Diffuser','Topical (diluted)','Massage'], benefits: ['Warming','Circulation','Muscle comfort','Motivation'], blends: ['Frankincense','Ginger','Lemon','Sandalwood','Bergamot'] },
+  'Cardamom':      { family: 'Spice', note: 'Middle', safety: 'Generally safe. Dilute for topical use.', uses: ['Diffuser','Topical (diluted)','Inhaler'], benefits: ['Digestive support','Respiratory','Warming','Mental focus'], blends: ['Orange','Cinnamon','Ginger','Cedarwood','Frankincense'] },
+  'Chamomile':     { family: 'Floral', note: 'Middle', safety: 'Generally very safe. Roman chamomile is gentler than German.', uses: ['Diffuser','Topical','Bath','Skin care'], benefits: ['Calming','Skin soothing','Sleep support','Anti-inflammatory'], blends: ['Lavender','Bergamot','Geranium','Rose','Clary Sage'] },
+  'Cypress':       { family: 'Woody', note: 'Middle', safety: 'Avoid during pregnancy. Generally safe otherwise.', uses: ['Diffuser','Topical','Chest rub'], benefits: ['Respiratory','Circulation','Grounding','Deodorant'], blends: ['Lavender','Juniper Berry','Cedarwood','Bergamot','Pine'] },
+  'Fennel':        { family: 'Herbaceous', note: 'Middle', safety: 'Avoid with epilepsy, pregnancy, estrogen-sensitive conditions. Use sweet fennel.', uses: ['Diffuser','Topical (diluted)','Compress'], benefits: ['Digestive','Hormone balance','Detoxifying','Respiratory'], blends: ['Lavender','Geranium','Lemon','Grapefruit','Marjoram'] },
+  'Helichrysum':   { family: 'Herbaceous', note: 'Middle', safety: 'Generally safe. Expensive — buy from reputable sources to avoid adulteration.', uses: ['Topical','Skin care','Diffuser'], benefits: ['Skin regeneration','Bruise healing','Anti-aging','Emotional healing'], blends: ['Lavender','Frankincense','Rose','Geranium','Clary Sage'] },
+  'Jasmine':       { family: 'Floral', note: 'Base', safety: 'Avoid during pregnancy (may stimulate contractions). Usually sold as absolute.', uses: ['Diffuser','Topical (diluted)','Perfumery'], benefits: ['Romance','Confidence','Mood elevation','Skin care'], blends: ['Rose','Bergamot','Sandalwood','Ylang Ylang','Orange'] },
+  'Neroli':        { family: 'Floral', note: 'Middle', safety: 'Generally safe. Non-phototoxic (unlike other citrus oils). Expensive.', uses: ['Diffuser','Topical','Skin care'], benefits: ['Anxiety relief','Skin rejuvenation','Sleep','Emotional healing'], blends: ['Lavender','Frankincense','Sandalwood','Bergamot','Rose'] },
+  'Oregano':       { family: 'Herbaceous', note: 'Middle', safety: 'Very strong — always dilute heavily. Not for children. Short-term use only.', uses: ['Topical (diluted)','Internal (capsule, with guidance)'], benefits: ['Potent antimicrobial','Immune powerhouse','Antifungal','Respiratory'], blends: ['Tea Tree','Frankincense','Lemon','Rosemary','Thyme'] },
+  'Rose':          { family: 'Floral', note: 'Base', safety: 'Generally safe. Usually sold as diluted (rose otto) or absolute. Very expensive.', uses: ['Diffuser','Topical','Skin care','Perfumery'], benefits: ['Heart opening','Skin radiance','Hormone balance','Emotional healing'], blends: ['Geranium','Bergamot','Sandalwood','Frankincense','Lavender'] },
+  'Spearmint':     { family: 'Mint', note: 'Top', safety: 'Gentler than peppermint. Safe for children over 2 (unlike peppermint).', uses: ['Diffuser','Topical (diluted)','Inhaler'], benefits: ['Uplifting','Digestive','Focus','Gentle energy'], blends: ['Lavender','Lemon','Rosemary','Basil','Grapefruit'] },
+  'Copaiba':       { family: 'Resin', note: 'Base', safety: 'Generally safe. May interact with medications metabolized by liver.', uses: ['Diffuser','Topical','Internal (under guidance)'], benefits: ['Anti-inflammatory','Pain support','Calming','Skin healing'], blends: ['Frankincense','Cedarwood','Lavender','Bergamot','Black Pepper'] },
+  'Melissa':       { family: 'Herbaceous', note: 'Middle', safety: 'Very expensive — often adulterated. Can sensitize skin. Dilute well.', uses: ['Diffuser','Topical (diluted)'], benefits: ['Antiviral','Calming','Mood support','Sleep'], blends: ['Lavender','Geranium','Frankincense','Rose','Basil'] },
+  'Myrrh':         { family: 'Resin', note: 'Base', safety: 'Avoid during pregnancy. Very thick and sticky.', uses: ['Diffuser','Topical','Oral care','Meditation'], benefits: ['Skin healing','Spiritual practice','Oral health','Anti-inflammatory'], blends: ['Frankincense','Lavender','Sandalwood','Orange','Patchouli'] },
+  'Palmarosa':     { family: 'Herbaceous-Floral', note: 'Middle', safety: 'Generally safe. Avoid during pregnancy.', uses: ['Diffuser','Topical','Skin care'], benefits: ['Skin hydration','Antimicrobial','Heart support','Digestive'], blends: ['Geranium','Bergamot','Lavender','Rose','Ylang Ylang'] },
+  'Petitgrain':    { family: 'Citrus-Woody', note: 'Top-Middle', safety: 'Generally safe. Non-phototoxic.', uses: ['Diffuser','Topical','Perfumery'], benefits: ['Calming','Skin balance','Deodorant','Stress relief'], blends: ['Lavender','Bergamot','Orange','Rosemary','Neroli'] },
+  'Lime':          { family: 'Citrus', note: 'Top', safety: 'Cold-pressed is phototoxic — distilled is safer for skin.', uses: ['Diffuser','Topical (distilled only)','Cleaning'], benefits: ['Uplifting','Energizing','Cleansing','Immune support'], blends: ['Lemon','Grapefruit','Bergamot','Lavender','Peppermint'] },
+  'Grapefruit':    { family: 'Citrus', note: 'Top', safety: 'Phototoxic. Short shelf life — refrigerate. May interact with medications.', uses: ['Diffuser','Topical (diluted)','Cleaning'], benefits: ['Energizing','Appetite support','Mood lift','Lymphatic support'], blends: ['Bergamot','Lavender','Ylang Ylang','Peppermint','Rosemary'] },
+  'Nutmeg':        { family: 'Spice', note: 'Middle', safety: 'Use sparingly — neurotoxic in large amounts. Max 1-2 drops in blends.', uses: ['Diffuser (sparingly)','Topical (diluted)'], benefits: ['Warming','Joint comfort','Digestive','Circulation'], blends: ['Orange','Cinnamon','Clove','Ginger','Cypress'] },
+  'Fir Needle':    { family: 'Coniferous', note: 'Middle', safety: 'Generally safe. May oxidize — use fresh. Can irritate sensitive skin.', uses: ['Diffuser','Topical (diluted)','Chest rub'], benefits: ['Respiratory','Grounding','Energizing','Pain relief'], blends: ['Pine','Spruce','Cedarwood','Lavender','Eucalyptus'] },
+  'Spruce':        { family: 'Coniferous', note: 'Middle', safety: 'Generally safe. Use fresh — oxidized spruce can sensitize.', uses: ['Diffuser','Topical (diluted)','Bath'], benefits: ['Grounding','Respiratory','Muscle comfort','Emotional release'], blends: ['Fir Needle','Pine','Cedarwood','Frankincense','Lavender'] },
+  'Pine':          { family: 'Coniferous', note: 'Middle', safety: 'Can sensitize if oxidized. Store properly. Dilute for topical use.', uses: ['Diffuser','Cleaning','Topical (diluted)'], benefits: ['Respiratory','Energizing','Antimicrobial','Cleansing'], blends: ['Eucalyptus','Tea Tree','Cedarwood','Fir Needle','Lemon'] },
+  'Carrot Seed':   { family: 'Earthy', note: 'Middle', safety: 'Avoid during pregnancy. Not the same as carrot oil (carrier).', uses: ['Topical','Skin care','Diffuser'], benefits: ['Skin rejuvenation','Liver support','Anti-aging','Detoxifying'], blends: ['Lavender','Frankincense','Geranium','Bergamot','Rose'] },
+  'Ravintsara':    { family: 'Camphoraceous', note: 'Top', safety: 'Generally safe. Often confused with ravensara — different oil.', uses: ['Diffuser','Topical','Chest rub'], benefits: ['Immune powerhouse','Respiratory','Antiviral','Energizing'], blends: ['Eucalyptus','Tea Tree','Frankincense','Lavender','Lemon'] },
+  'Immortelle':    { family: 'Herbaceous', note: 'Middle', safety: 'Generally safe. Same as Helichrysum. Very expensive.', uses: ['Topical','Skin care'], benefits: ['Anti-aging','Scar reduction','Bruise healing','Skin repair'], blends: ['Lavender','Frankincense','Rose','Geranium','Neroli'] },
+  'Turmeric':      { family: 'Spice', note: 'Base', safety: 'Strongly pigmented — may stain skin/fabric. Phototoxic.', uses: ['Diffuser','Topical (diluted)'], benefits: ['Anti-inflammatory','Joint support','Skin brightening','Mood support'], blends: ['Frankincense','Ginger','Black Pepper','Orange','Cedarwood'] }
+};
+
+const CARRIER_OILS = [
+  { name: 'Fractionated Coconut Oil', absorption: 'Fast', feel: 'Very light, non-greasy', shelf: 'Indefinite', best: 'Roller bottles, everyday use, massage', note: 'The #1 carrier for beginners. Odorless, colorless, never goes rancid. Always liquid.' },
+  { name: 'Jojoba Oil', absorption: 'Medium', feel: 'Silky, similar to skin sebum', shelf: '5+ years', best: 'Facial serums, acne-prone skin, perfumery', note: 'Technically a liquid wax, not an oil. Closest to your skin\'s natural sebum. Won\'t clog pores.' },
+  { name: 'Sweet Almond Oil', absorption: 'Medium', feel: 'Smooth, slightly nutty scent', shelf: '1 year', best: 'Massage, body oils, bath', note: 'Affordable and versatile. Rich in vitamin E. Avoid if you have nut allergies.' },
+  { name: 'Argan Oil', absorption: 'Medium-Fast', feel: 'Light, non-greasy', shelf: '2 years', best: 'Hair care, facial oil, anti-aging', note: 'Liquid gold from Morocco. Excellent for hair and face. More expensive but worth it for targeted use.' },
+  { name: 'Rosehip Seed Oil', absorption: 'Fast', feel: 'Dry, light', shelf: '6 months (refrigerate)', best: 'Anti-aging serums, scar treatment, facial care', note: 'High in vitamin A and essential fatty acids. Best for nighttime facial use. Short shelf life.' },
+  { name: 'Grapeseed Oil', absorption: 'Fast', feel: 'Very light, odorless', shelf: '6-12 months', best: 'Massage, oily skin types, large batches', note: 'Light and affordable. Great for massage because of its silky glide. Mild astringent properties.' },
+  { name: 'Avocado Oil', absorption: 'Slow', feel: 'Rich, heavy', shelf: '1 year', best: 'Dry skin, eczema, winter formulas, mature skin', note: 'Very nourishing but heavy. Best blended 10-25% with a lighter carrier. Rich green color.' },
+  { name: 'Hemp Seed Oil', absorption: 'Medium', feel: 'Light-medium, slightly green', shelf: '6 months (refrigerate)', best: 'Inflammation, body oils, problem skin', note: 'Anti-inflammatory. Won\'t clog pores. Green tint and earthy scent. Refrigerate after opening.' }
+];
+
+const INTENTIONS = {
+  sleep: 'Sleep & Calm',
+  energy: 'Energy & Focus',
+  immunity: 'Immunity',
+  mood: 'Mood Lift',
+  pain: 'Pain Relief',
+  skin: 'Skin & Beauty',
+  breathing: 'Breathing',
+  digestion: 'Digestion'
+};
+
+const BLEND_LOADING_MSGS = [
+  'Nosing through your collection...',
+  'Composing the perfect accord...',
+  'Almost ready to blend...',
+  'Balancing top, middle, and base notes...',
+  'Calibrating drop counts...'
+];
+
+const BUY_LOADING_MSGS = [
+  'Surveying the gaps in your kit...',
+  'Scanning the aromatic universe...',
+  'Curating your next bottles...',
+  'Analyzing synergies...',
+  'Handpicking recommendations...'
+];
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+
+let oils = JSON.parse(localStorage.getItem('dank_oils') || '[]');
+let savedBlends = JSON.parse(localStorage.getItem('dank_saved_blends') || '[]');
+let history = JSON.parse(localStorage.getItem('dank_history') || '[]');
+let selectedIntention = null;
+let currentResult = null;
+let currentResultType = null;
+let loadingInterval = null;
+let highlightedIndex = -1;
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderOilTags();
+  updateOilCount();
+  updateActionButtons();
+  renderSavedBlends();
+  renderHistory();
+  renderCarrierGuide();
+  updateCalc();
+  initTabs();
+  initIntentions();
+  initOilInput();
+  initSettings();
+  initCalc();
+  registerSW();
+});
+
+function registerSW() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════════════
+
+function initTabs() {
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// OIL INPUT + AUTOCOMPLETE
+// ═══════════════════════════════════════════════════════════════
+
+function initOilInput() {
+  const input = document.getElementById('oilInput');
+  const ac = document.getElementById('autocomplete');
+
+  input.addEventListener('input', () => {
+    const val = input.value.trim();
+    if (val.length === 0) { closeAutocomplete(); return; }
+
+    const lower = val.toLowerCase();
+    const matches = BUILT_IN_OILS.filter(o =>
+      o.toLowerCase().includes(lower) && !oils.includes(o)
+    ).slice(0, 8);
+
+    if (matches.length === 0) { closeAutocomplete(); return; }
+
+    highlightedIndex = -1;
+    ac.innerHTML = matches.map((m, i) => {
+      const idx = m.toLowerCase().indexOf(lower);
+      const before = m.slice(0, idx);
+      const match = m.slice(idx, idx + val.length);
+      const after = m.slice(idx + val.length);
+      return `<div class="autocomplete-item" data-index="${i}" data-oil="${m}">${before}<span class="match">${match}</span>${after}</div>`;
+    }).join('');
+
+    ac.classList.add('open');
+
+    ac.querySelectorAll('.autocomplete-item').forEach(item => {
+      item.addEventListener('click', () => {
+        addOil(item.dataset.oil);
+        input.value = '';
+        closeAutocomplete();
+        input.focus();
+      });
+    });
+  });
+
+  input.addEventListener('keydown', (e) => {
+    const items = ac.querySelectorAll('.autocomplete-item');
+    if (e.key === 'ArrowDown' && ac.classList.contains('open')) {
+      e.preventDefault();
+      highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
+      updateHighlight(items);
+    } else if (e.key === 'ArrowUp' && ac.classList.contains('open')) {
+      e.preventDefault();
+      highlightedIndex = Math.max(highlightedIndex - 1, 0);
+      updateHighlight(items);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightedIndex >= 0 && items[highlightedIndex]) {
+        addOil(items[highlightedIndex].dataset.oil);
+        input.value = '';
+        closeAutocomplete();
+      } else if (input.value.trim().length > 0) {
+        addOil(input.value.trim());
+        input.value = '';
+        closeAutocomplete();
+      }
+    } else if (e.key === 'Escape') {
+      closeAutocomplete();
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.oil-input-wrap')) closeAutocomplete();
+  });
+}
+
+function updateHighlight(items) {
+  items.forEach((item, i) => {
+    item.classList.toggle('highlighted', i === highlightedIndex);
+  });
+}
+
+function closeAutocomplete() {
+  document.getElementById('autocomplete').classList.remove('open');
+  highlightedIndex = -1;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// OIL COLLECTION
+// ═══════════════════════════════════════════════════════════════
+
+function addOil(name) {
+  const normalized = name.charAt(0).toUpperCase() + name.slice(1);
+  if (oils.includes(normalized)) return;
+  oils.push(normalized);
+  saveOils();
+  renderOilTags();
+  updateOilCount();
+  updateActionButtons();
+}
+
+function removeOil(name) {
+  oils = oils.filter(o => o !== name);
+  saveOils();
+  renderOilTags();
+  updateOilCount();
+  updateActionButtons();
+}
+
+function saveOils() {
+  localStorage.setItem('dank_oils', JSON.stringify(oils));
+}
+
+function renderOilTags() {
+  const container = document.getElementById('oilTags');
+  container.innerHTML = oils.map(o => {
+    const hasData = OIL_DATA[o];
+    const clickAttr = hasData ? `onclick="openOilModal('${o.replace(/'/g, "\\'")}')"` : '';
+    const cursorStyle = hasData ? 'cursor:pointer;' : '';
+    return `<span class="oil-tag" style="${cursorStyle}" ${clickAttr}>${o}<span class="remove" onclick="event.stopPropagation();removeOil('${o.replace(/'/g, "\\'")}')">&times;</span></span>`;
+  }).join('');
+}
+
+function updateOilCount() {
+  const count = oils.length;
+  document.getElementById('oilCount').textContent = count === 0
+    ? 'Add oils to get started'
+    : `${count} oil${count !== 1 ? 's' : ''} in your collection`;
+}
+
+function updateActionButtons() {
+  document.getElementById('btnBlend').disabled = oils.length < 2;
+  document.getElementById('btnBuy').disabled = oils.length < 1;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INTENTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function initIntentions() {
+  document.querySelectorAll('.intention-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const intention = btn.dataset.intention;
+      if (selectedIntention === intention) {
+        selectedIntention = null;
+        btn.classList.remove('active');
+      } else {
+        document.querySelectorAll('.intention-btn').forEach(b => b.classList.remove('active'));
+        selectedIntention = intention;
+        btn.classList.add('active');
+      }
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// API CALLS
+// ═══════════════════════════════════════════════════════════════
+
+document.getElementById('btnBlend').addEventListener('click', generateBlends);
+document.getElementById('btnBuy').addEventListener('click', generateBuyAdvice);
+
+async function generateBlends() {
+  const key = getApiKey();
+  if (!key) { promptForKey(); return; }
+
+  const intentionLine = selectedIntention
+    ? `My primary goal is: ${INTENTIONS[selectedIntention]}.`
+    : '';
+
+  const prompt = `I have these essential oils: ${oils.join(', ')}.
+${intentionLine}
+
+Create 3 specific blend recipes using ONLY oils from my list. For each blend:
+- A creative name in ALL CAPS
+- The purpose / what it helps with (1 sentence)
+- Exact drops for a diffuser blend (e.g. 3 drops X + 2 drops Y)
+- A roller bottle version (in a 10ml roller with fractionated coconut oil)
+- One tip for best use
+
+Format each recipe clearly. Be specific with drop counts.
+Keep it practical and grounded.`;
+
+  await callClaude(prompt, 'blend');
+}
+
+async function generateBuyAdvice() {
+  const key = getApiKey();
+  if (!key) { promptForKey(); return; }
+
+  const intentionLine = selectedIntention
+    ? `I'm especially interested in: ${INTENTIONS[selectedIntention]}.`
+    : '';
+
+  const prompt = `I currently own these essential oils: ${oils.join(', ')}.
+${intentionLine}
+
+Recommend exactly 5 oils I should buy next. For each:
+- Oil name in ALL CAPS
+- Why it pairs brilliantly with what I already have (specific pairings)
+- The main therapeutic benefit it would add to my collection
+- Best use case (diffuser, topical, etc.)
+- Priority: High / Medium based on versatility
+
+Be opinionated and specific.`;
+
+  await callClaude(prompt, 'buy');
+}
+
+async function callClaude(prompt, type) {
+  const key = getApiKey();
+  const loading = document.getElementById('loadingPanel');
+  const loadingText = document.getElementById('loadingText');
+  const resultPanel = document.getElementById('resultPanel');
+  const resultContent = document.getElementById('resultContent');
+  const resultTitle = document.getElementById('resultTitle');
+
+  resultPanel.classList.remove('visible');
+  loading.classList.add('visible');
+
+  const msgs = type === 'blend' ? BLEND_LOADING_MSGS : BUY_LOADING_MSGS;
+  let msgIdx = 0;
+  loadingText.textContent = msgs[0];
+  loadingInterval = setInterval(() => {
+    msgIdx = (msgIdx + 1) % msgs.length;
+    loadingText.textContent = msgs[msgIdx];
+  }, 2500);
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      throw new Error(data.error.message || 'API request failed');
+    }
+
+    const text = data.content.find(b => b.type === 'text')?.text || 'No response received.';
+
+    currentResult = text;
+    currentResultType = type;
+
+    resultTitle.textContent = type === 'blend' ? 'Blend Recipes' : 'Buy Recommendations';
+    resultContent.innerHTML = formatResult(text);
+    resultPanel.classList.add('visible');
+
+    // Save to history
+    addToHistory(type, text);
+
+  } catch (err) {
+    resultTitle.textContent = 'Error';
+    resultContent.innerHTML = `<p style="color:var(--danger)">${escapeHtml(err.message)}</p><p style="color:var(--muted);font-size:13px;margin-top:8px">Check your API key in Settings and try again.</p>`;
+    resultPanel.classList.add('visible');
+    currentResult = null;
+    currentResultType = null;
+  } finally {
+    clearInterval(loadingInterval);
+    loading.classList.remove('visible');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RESULT FORMATTING (Phase 2)
+// ═══════════════════════════════════════════════════════════════
+
+function formatResult(text) {
+  let html = escapeHtml(text);
+
+  // Headers: lines in ALL CAPS (recipe names) → <h3>
+  html = html.replace(/^([A-Z][A-Z\s&''\-:!]{3,})$/gm, (match) => {
+    return `</p><hr class="divider"><h3>${match.trim()}</h3><p>`;
+  });
+
+  // Bold: **text**
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+  // Drop counts: "X drops" highlighted
+  html = html.replace(/(\d+)\s+(drops?)/gi, '<span class="drops">$1 $2</span>');
+
+  // Line breaks
+  html = html.replace(/\n/g, '<br>');
+
+  // Clean up empty tags and leading divider
+  html = html.replace(/^(<br>)*/, '');
+  html = html.replace(/^<\/p><hr class="divider">/, '');
+  html = '<p>' + html + '</p>';
+  html = html.replace(/<p><\/p>/g, '');
+
+  return html;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SAVED BLENDS (Phase 2 + Phase 3 Notes)
+// ═══════════════════════════════════════════════════════════════
+
+function saveCurrentResult() {
+  if (!currentResult) return;
+
+  const blend = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    savedAt: new Date().toISOString(),
+    type: currentResultType,
+    intention: selectedIntention,
+    oils: [...oils],
+    content: currentResult,
+    notes: ''
+  };
+
+  savedBlends.unshift(blend);
+  localStorage.setItem('dank_saved_blends', JSON.stringify(savedBlends));
+
+  const btn = document.getElementById('btnSaveResult');
+  btn.classList.add('saved');
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Saved`;
+
+  setTimeout(() => {
+    btn.classList.remove('saved');
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg> Save`;
+  }, 2000);
+
+  renderSavedBlends();
+}
+
+function renderSavedBlends() {
+  const container = document.getElementById('savedBlendsList');
+  if (savedBlends.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">&#9733;</div>
+      <div class="empty-state-text">No saved blends yet.<br>Generate a blend and tap Save to keep it here.</div>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = savedBlends.map((b, i) => {
+    const date = new Date(b.savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const intentionTag = b.intention ? `<span class="saved-blend-intention">${INTENTIONS[b.intention] || b.intention}</span>` : '';
+    const oilTags = (b.oils || []).slice(0, 6).map(o => `<span class="mini-tag">${escapeHtml(o)}</span>`).join('');
+    const moreOils = (b.oils || []).length > 6 ? `<span class="mini-tag">+${b.oils.length - 6}</span>` : '';
+    const typeLabel = b.type === 'buy' ? 'Buy List' : 'Blend';
+
+    return `<div class="saved-blend-card">
+      <div class="saved-blend-header">
+        <div><span class="saved-blend-meta">${date} &middot; ${typeLabel}</span> ${intentionTag}</div>
+      </div>
+      <div class="saved-blend-oils">${oilTags}${moreOils}</div>
+      <div class="saved-blend-content collapsed" id="blend-content-${i}" onclick="toggleBlendContent(${i})">${formatResult(b.content)}</div>
+      <div class="saved-blend-notes">
+        <textarea placeholder="Add personal notes..." oninput="updateBlendNotes(${i}, this.value)">${escapeHtml(b.notes || '')}</textarea>
+      </div>
+      <div class="saved-blend-actions">
+        <button class="btn btn-small btn-secondary btn-icon" onclick="copyBlend(${i})">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy
+        </button>
+        <button class="btn btn-small btn-danger" onclick="deleteBlend(${i})">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleBlendContent(index) {
+  const el = document.getElementById('blend-content-' + index);
+  el.classList.toggle('collapsed');
+}
+
+function updateBlendNotes(index, value) {
+  savedBlends[index].notes = value;
+  localStorage.setItem('dank_saved_blends', JSON.stringify(savedBlends));
+}
+
+function copyBlend(index) {
+  const blend = savedBlends[index];
+  const text = blend.content + (blend.notes ? '\n\nNotes: ' + blend.notes : '');
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target.closest('.btn');
+    const orig = btn.innerHTML;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.innerHTML = orig, 1500);
+  });
+}
+
+function deleteBlend(index) {
+  savedBlends.splice(index, 1);
+  localStorage.setItem('dank_saved_blends', JSON.stringify(savedBlends));
+  renderSavedBlends();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HISTORY (Phase 3)
+// ═══════════════════════════════════════════════════════════════
+
+function addToHistory(type, content) {
+  const entry = {
+    id: Date.now().toString(36),
+    timestamp: new Date().toISOString(),
+    type: type,
+    intention: selectedIntention,
+    oils: [...oils],
+    content: content
+  };
+  history.unshift(entry);
+  if (history.length > 50) history = history.slice(0, 50); // cap at 50
+  localStorage.setItem('dank_history', JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory() {
+  const container = document.getElementById('historyList');
+  if (history.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">&#128220;</div>
+      <div class="empty-state-text">No history yet.<br>Your blend and buy generations will appear here.</div>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = history.map((h, i) => {
+    const date = new Date(h.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    const preview = h.content.slice(0, 80).replace(/\n/g, ' ') + '...';
+    return `<div class="history-entry" onclick="toggleHistory(${i})">
+      <div class="history-entry-header">
+        <span class="history-entry-type ${h.type}">${h.type === 'blend' ? 'Blend' : 'Buy'}</span>
+        <span class="history-entry-date">${date}</span>
+      </div>
+      <div class="history-entry-preview">${escapeHtml(preview)}</div>
+      <div class="history-detail" id="history-detail-${i}">${formatResult(h.content)}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleHistory(index) {
+  const el = document.getElementById('history-detail-' + index);
+  el.classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// OIL DETAIL MODAL (Phase 3)
+// ═══════════════════════════════════════════════════════════════
+
+function openOilModal(name) {
+  const data = OIL_DATA[name];
+  if (!data) return;
+
+  document.getElementById('oilModalName').textContent = name;
+
+  const blendsInCollection = (data.blends || []).filter(b => oils.includes(b));
+  const blendsNotOwned = (data.blends || []).filter(b => !oils.includes(b));
+
+  let html = '';
+  html += `<div class="modal-section"><div class="modal-section-title">Profile</div>
+    <p><strong>Family:</strong> ${data.family} &nbsp;&middot;&nbsp; <strong>Note:</strong> ${data.note}</p></div>`;
+
+  html += `<div class="modal-section"><div class="modal-section-title">Benefits</div><ul>`;
+  data.benefits.forEach(b => html += `<li>${b}</li>`);
+  html += '</ul></div>';
+
+  html += `<div class="modal-section"><div class="modal-section-title">Best Uses</div><ul>`;
+  data.uses.forEach(u => html += `<li>${u}</li>`);
+  html += '</ul></div>';
+
+  html += `<div class="modal-section"><div class="modal-section-title">Safety</div><p>${data.safety}</p></div>`;
+
+  if (blendsInCollection.length > 0) {
+    html += `<div class="modal-section"><div class="modal-section-title">Blends Well With (you own)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${blendsInCollection.map(b => `<span class="oil-tag" style="font-size:12px;padding:4px 10px">${b}</span>`).join('')}</div></div>`;
+  }
+  if (blendsNotOwned.length > 0) {
+    html += `<div class="modal-section"><div class="modal-section-title">Also Blends With</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${blendsNotOwned.map(b => `<span style="display:inline-block;padding:4px 10px;background:var(--cream);color:var(--muted);border-radius:10px;font-size:12px">${b}</span>`).join('')}</div></div>`;
+  }
+
+  document.getElementById('oilModalBody').innerHTML = html;
+  document.getElementById('oilModal').classList.add('open');
+}
+
+function closeOilModal() {
+  document.getElementById('oilModal').classList.remove('open');
+}
+
+document.getElementById('oilModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('oilModal')) closeOilModal();
+});
+
+// ═══════════════════════════════════════════════════════════════
+// CARRIER OIL GUIDE (Phase 3)
+// ═══════════════════════════════════════════════════════════════
+
+function renderCarrierGuide() {
+  document.getElementById('carrierGuide').innerHTML = CARRIER_OILS.map(c => `
+    <div class="carrier-card">
+      <h4>${c.name}</h4>
+      <p>${c.note}</p>
+      <div class="carrier-meta">
+        <strong>Absorption:</strong> ${c.absorption} &middot;
+        <strong>Feel:</strong> ${c.feel} &middot;
+        <strong>Shelf life:</strong> ${c.shelf}
+      </div>
+      <div class="carrier-meta"><strong>Best for:</strong> ${c.best}</div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DILUTION CALCULATOR (Phase 3)
+// ═══════════════════════════════════════════════════════════════
+
+function initCalc() {
+  document.getElementById('calcVolume').addEventListener('change', updateCalc);
+  document.getElementById('calcPercent').addEventListener('change', updateCalc);
+}
+
+function updateCalc() {
+  const volume = parseFloat(document.getElementById('calcVolume').value);
+  const percent = parseFloat(document.getElementById('calcPercent').value);
+  // ~20 drops per ml of essential oil
+  const drops = Math.round(volume * (percent / 100) * 20);
+  document.getElementById('calcDrops').textContent = drops;
+  document.getElementById('calcDetail').textContent = `in ${volume} ml carrier oil at ${percent}% dilution`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════════
+
+function initSettings() {
+  const input = document.getElementById('apiKeyInput');
+  const saved = document.getElementById('apiKeySaved');
+  const existing = localStorage.getItem('dank_api_key');
+  if (existing) input.value = existing;
+
+  input.addEventListener('input', () => {
+    localStorage.setItem('dank_api_key', input.value.trim());
+    saved.classList.add('visible');
+    setTimeout(() => saved.classList.remove('visible'), 2000);
+  });
+}
+
+function getApiKey() {
+  return localStorage.getItem('dank_api_key') || '';
+}
+
+function promptForKey() {
+  toggleSettings();
+  setTimeout(() => document.getElementById('apiKeyInput').focus(), 400);
+}
+
+function toggleSettings() {
+  document.getElementById('settingsOverlay').classList.toggle('open');
+  document.getElementById('settingsPanel').classList.toggle('open');
+}
+
+function exportData() {
+  const data = {
+    oils: oils,
+    savedBlends: savedBlends,
+    history: history,
+    exportedAt: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `dank-export-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function clearAllData() {
+  if (!confirm('This will delete all your oils, saved blends, and history. Are you sure?')) return;
+  oils = [];
+  savedBlends = [];
+  history = [];
+  localStorage.removeItem('dank_oils');
+  localStorage.removeItem('dank_saved_blends');
+  localStorage.removeItem('dank_history');
+  renderOilTags();
+  updateOilCount();
+  updateActionButtons();
+  renderSavedBlends();
+  renderHistory();
+  document.getElementById('resultPanel').classList.remove('visible');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// KEYBOARD SHORTCUT: Escape closes modals
+// ═══════════════════════════════════════════════════════════════
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('oilModal').classList.contains('open')) closeOilModal();
+    else if (document.getElementById('settingsPanel').classList.contains('open')) toggleSettings();
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "DANK",
+  "short_name": "DANK",
+  "description": "Your personal essential oil blender",
+  "start_url": "/dank/",
+  "display": "standalone",
+  "background_color": "#f5f0e8",
+  "theme_color": "#3a5a3a",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
