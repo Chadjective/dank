@@ -1,6 +1,6 @@
 # DANK
 
-DANK is your personal essential oil blender — a single-page installable web app (PWA) for managing an essential oil collection and getting AI-generated blend recipes.
+Your personal essential oil blender - installable PWA for tracking your oil collection and getting AI-generated blends.
 
 ## Features
 
